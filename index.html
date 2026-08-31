@@ -50,13 +50,7 @@
     </style>
 </head>
 <!-- Palette Choice: Brilliant Blue & Emerald (Primary: #1E3A8A, Secondary: #0284C7, Accent: #059669, Highlight: #F59E0B) -->
-<!-- Plan Summary: Single page interactive infographic dashboard presenting the MG Hope Dream Loan proposal. Key sections cover Executive KPI Summary, Background & Necessity, Target Audience Breakdown, Rate Discount Composition, Risk Mitigation Workflow, and Expected Outcomes. -->
-<!-- Visualization Choices:
-     1. Local Merchant Economic Pressure -> Line/Bar Chart (Chart.js): Revenue Decline vs Debt Burden Trend.
-     2. Target Customer Composition -> Donut Chart (Chart.js): Breakdown of target merchant categories.
-     3. Interest Rate Discount Structure -> Horizontal Bar Chart (Chart.js): Component breakdown up to max 1.5%p discount.
-     4. Expected Financial & Operating Outcomes -> Bar Chart (Chart.js): Targets for Cross-sell and Deposit Growth.
-     Confirmation: NO SVG elements and NO Mermaid JS libraries are used anywhere in this file. -->
+<!-- Plan Summary: Single page interactive infographic dashboard presenting the MG Hope Dream Loan proposal. Key sections cover Executive KPI Summary, Background & Necessity, Target Audience Breakdown, Rate Discount Composition, Risk Mitigation Workflow, and Expected Outcomes. Includes Header action button for Financial Calculator link. -->
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white">
 
     <!-- Header Section -->
@@ -70,18 +64,32 @@
                         <span>금융상품개발팀 기획안</span>
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                        MG 상생 너의 대출
+                        MG 상생 희망드림 대출
                     </h1>
                     <p class="mt-2 text-base sm:text-lg text-brand-100 max-w-2xl">
                         지역 경기 둔화 극복 및 소상공인 자립 지원을 위한 지역 밀착형 서민금융 특화 대출 상품
                     </p>
                 </div>
-                <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 text-right self-start md:self-auto">
-                    <p class="text-xs text-brand-100">최종 작성일자</p>
-                    <p class="text-lg font-bold">2026. 08. 31</p>
-                    <span class="inline-block mt-1 text-xs bg-emerald-500 text-white font-medium px-2 py-0.5 rounded">
-                        상생금융 특화안
-                    </span>
+                <div class="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-3 self-start md:self-auto">
+                    <!-- Financial Calculator Link Button -->
+                    <a href="https://edu027-bit.github.io/mg0831/cal" target="_blank" rel="noopener noreferrer" 
+                       class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>금융계산기</span>
+                        <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                    
+                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 text-left md:text-right w-full sm:w-auto">
+                        <p class="text-xs text-brand-100">최종 작성일자</p>
+                        <p class="text-lg font-bold">2026. 08. 31</p>
+                        <span class="inline-block mt-1 text-xs bg-emerald-500 text-white font-medium px-2 py-0.5 rounded">
+                            상생금융 특화안
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
