@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MG 새마을금고 맞춤형 대출 상환 계산기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mgBlue: {
+                            DEFAULT: '#004B93',
+                            dark: '#003366',
+                            light: '#E6EFF8',
+                            accent: '#0072CE'
+                        },
+                        mgGreen: {
+                            DEFAULT: '#00A859',
+                            light: '#E6F6ED'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f4f6f9;
+        }
+        /* Custom Scrollbar for Schedule Table */
+        .table-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .table-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .table-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .table-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Section -->
+    <header class="bg-mgBlue text-white shadow-md border-b-4 border-mgGreen">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <!-- MG Logo Style Emblem -->
+                <div class="bg-white text-mgBlue font-black px-3 py-1.5 rounded-lg text-lg tracking-wider shadow">
+                    MG
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">새마을금고 대출 상환 계산기</h1>
+                    <p class="text-xs text-blue-200">디지털금융본부 맞춤형 금융 컨설팅 솔루션</p>
+                </div>
+            </div>
+            <div class="text-xs bg-mgBlue-dark px-3 py-1.5 rounded-full border border-blue-400/30 flex items-center gap-1.5">
+                <i class="fa-solid fa-calculator text-mgGreen"></i>
+                <span>실시간 상환액 계산 서비스</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Input Form (5 cols) -->
+        <section class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between h-fit">
+            <div>
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-slate-100">
+                    <i class="fa-solid fa-sliders text-mgBlue text-lg"></i>
+                    <h2 class="text-lg font-bold text-slate-800">대출 조건 입력</h2>
+                </div>
+
+                <form id="calcForm" onsubmit="event.preventDefault(); calculateLoan();" class="space-y-5">
+                    
+                    <!-- 1. 대출 금액 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="amount">
+                            대출 금액 <span class="text-xs font-normal text-slate-500">(만원 단위)</span>
+                        </label>
+                        <div class="relative rounded-md shadow-sm mb-2">
+                            <input type="number" id="amount" value="5000" min="1" step="1"
+                                class="w-full text-right font-bold text-lg pr-12 pl-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mgBlue focus:border-mgBlue outline-none transition"
+                                oninput="updateAmountDisplay();">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 font-medium">
+                                만원
+                            </div>
+                        </div>
+                        <div class="text-right text-xs text-mgBlue font-semibold mb-2" id="amountFormatted">
+                            5,000만원 (50,000,000원)
+                        </div>
+                        <!-- 원터치 버튼 -->
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" onclick="addAmount(100)" class="py-1.5 bg-slate-100 hover:bg-mgBlue-light hover:text-mgBlue text-slate-600 text-xs font-medium rounded border border-slate-200 transition">+100만</button>
+                            <button type="button" onclick="addAmount(500)" class="py-1.5 bg-slate-100 hover:bg-mgBlue-light hover:text-mgBlue text-slate-600 text-xs font-medium rounded border border-slate-200 transition">+500만</button>
+                            <button type="button" onclick="addAmount(1000)" class="py-1.5 bg-slate-100 hover:bg-mgBlue-light hover:text-mgBlue text-slate-600 text-xs font-medium rounded border border-slate-200 transition">+1,000만</button>
+                            <button type="button" onclick="resetAmount()" class="py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-medium rounded border border-rose-200 transition">초기화</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. 대출 기간 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-sm font-semibold text-slate-700" for="period">대출 기간</label>
+                            <div class="inline-flex rounded-md shadow-sm text-xs" role="group">
+                                <button type="button" id="unitMonth" onclick="setPeriodUnit('month')" class="px-2.5 py-1 bg-mgBlue text-white font-medium rounded-l-md border border-mgBlue">개월</button>
+                                <button type="button" id="unitYear" onclick="setPeriodUnit('year')" class="px-2.5 py-1 bg-white text-slate-600 font-medium rounded-r-md border border-slate-300 hover:bg-slate-50">년</button>
+                            </div>
+                        </div>
+                        <div class="relative rounded-md shadow-sm">
+                            <input type="number" id="period" value="24" min="1" max="360"
+                                class="w-full text-right font-bold text-lg pr-12 pl-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mgBlue focus:border-mgBlue outline-none transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 font-medium" id="periodUnitText">
+                                개월
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 연 이자율 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rate">
+                            연 이자율
+                        </label>
+                        <div class="relative rounded-md shadow-sm">
+                            <input type="number" id="rate" value="4.5" min="0.1" max="30" step="0.01"
+                                class="w-full text-right font-bold text-lg pr-10 pl-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mgBlue focus:border-mgBlue outline-none transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 font-medium">
+                                %
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. 상환 방식 선택 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">상환 방식</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition border-mgBlue bg-mgBlue-light/30" id="typeLabel1">
+                                <input type="radio" name="repayType" value="equalPrincipalInterest" checked class="w-4 h-4 text-mgBlue focus:ring-mgBlue" onchange="highlightType();">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-bold text-slate-800">원리금균등분할상환</span>
+                                    <span class="block text-xs text-slate-500">매월 원금과 이자의 합계가 동일한 방식</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition border-slate-200" id="typeLabel2">
+                                <input type="radio" name="repayType" value="equalPrincipal" class="w-4 h-4 text-mgBlue focus:ring-mgBlue" onchange="highlightType();">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-bold text-slate-800">원금균등분할상환</span>
+                                    <span class="block text-xs text-slate-500">매월 동일한 원금과 감소하는 이자를 상환</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition border-slate-200" id="typeLabel3">
+                                <input type="radio" name="repayType" value="bullet" class="w-4 h-4 text-mgBlue focus:ring-mgBlue" onchange="highlightType();">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-bold text-slate-800">만기일시상환</span>
+                                    <span class="block text-xs text-slate-500">매월 이자만 납입 후 만기에 원금 일시 상환</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 제출 버튼 -->
+                    <button type="submit" class="w-full bg-mgBlue hover:bg-mgBlue-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 text-base">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>상환 금액 계산하기</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 안내 사항 -->
+            <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                <p><i class="fa-solid fa-circle-info text-mgBlue mr-1"></i> 본 계산 결과는 단순 참고용이며, 실제 대출 실행 시 금리와 상환액은 약간의 차이가 발생할 수 있습니다.</p>
+            </div>
+        </section>
+
+        <!-- Right Column: Results & Schedule Table (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col space-y-6">
+            
+            <!-- Summary Cards Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Card 1: 1회차 월 상환액 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-calendar-check text-mgBlue"></i> 1회차 납입금
+                    </span>
+                    <div>
+                        <span class="text-2xl font-black text-mgBlue tracking-tight" id="resFirstMonth">-</span>
+                        <span class="text-xs text-slate-600 font-medium">원</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 mt-2" id="resFirstMonthSub">원금 + 이자 포함</span>
+                </div>
+
+                <!-- Card 2: 총 이자 합계 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-percent text-amber-500"></i> 총 이자 금액
+                    </span>
+                    <div>
+                        <span class="text-2xl font-black text-amber-600 tracking-tight" id="resTotalInterest">-</span>
+                        <span class="text-xs text-slate-600 font-medium">원</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 mt-2">대출기간 동안 부담할 이자</span>
+                </div>
+
+                <!-- Card 3: 총 상환 금액 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <span class="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-wallet text-mgGreen"></i> 총 상환 금액
+                    </span>
+                    <div>
+                        <span class="text-2xl font-black text-slate-800 tracking-tight" id="resTotalRepay">-</span>
+                        <span class="text-xs text-slate-600 font-medium">원</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 mt-2">원금 + 총 이자 합계</span>
+                </div>
+            </div>
+
+            <!-- Detailed Schedule Table Container -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-mgBlue"></i>
+                            <span>회차별 상환 스케줄</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">매월 납입해야 하는 원금과 이자 세부 내역입니다.</p>
+                    </div>
+                    <span id="scheduleBadge" class="self-start sm:self-auto px-3 py-1 bg-mgBlue-light text-mgBlue text-xs font-bold rounded-full">
+                        원리금균등분할상환
+                    </span>
+                </div>
+
+                <!-- Scrollable Table -->
+                <div class="overflow-x-auto table-scrollbar max-h-[480px] border border-slate-100 rounded-lg">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-50 text-slate-600 text-xs font-semibold sticky top-0 border-b border-slate-200 shadow-sm">
+                            <tr>
+                                <th class="py-3 px-3 text-center w-16">회차</th>
+                                <th class="py-3 px-4">납입 원금</th>
+                                <th class="py-3 px-4">대출 이자</th>
+                                <th class="py-3 px-4 text-mgBlue font-bold">월 납입금</th>
+                                <th class="py-3 px-4">대출 잔액</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- JS Dynamic Generation -->
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-slate-400">
+                                    상좌의 조건을 입력하신 후 [상환 금액 계산하기] 버튼을 눌러주세요.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 text-xs py-6 mt-12 border-t border-slate-700">
+        <div class="max-w-6xl mx-auto px-4 text-center space-y-2">
+            <p class="font-medium text-slate-300">MG 새마을금고 디지털금융본부 (KFCC Digital Banking)</p>
+            <p>본 금융계산기 프로그램은 고객의 이해를 돕기 위한 예측 수치이며, 약정 조건 및 일수 계산 방식에 따라 실제 대출 이자와 차이가 발생할 수 있습니다.</p>
+            <p class="text-slate-500 pt-2">Copyright © KFCC. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript logic -->
+    <script>
+        let currentPeriodUnit = 'month'; // 'month' or 'year'
+
+        // 페이지 로드 시 초기 계산 실행
+        window.onload = function() {
+            updateAmountDisplay();
+            calculateLoan();
+        };
+
+        // 금액 단주 표시 업데이트
+        function updateAmountDisplay() {
+            const amountInput = document.getElementById('amount');
+            let val = parseFloat(amountInput.value) || 0;
+            const formattedElem = document.getElementById('amountFormatted');
+            
+            const totalWon = val * 10000;
+            const formatted = totalWon.toLocaleString('ko-KR');
+            
+            let resultText = "";
+            if (val >= 10000) {
+                const uk = Math.floor(val / 10000);
+                const remainder = val % 10000;
+                resultText = `${uk}억 ${remainder > 0 ? remainder.toLocaleString('ko-KR') + '만' : ''}원 (${formatted}원)`;
+            } else {
+                resultText = `${val.toLocaleString('ko-KR')}만원 (${formatted}원)`;
+            }
+            
+            formattedElem.textContent = resultText;
+        }
+
+        // 대출 금액 원터치 버튼
+        function addAmount(val) {
+            const amountInput = document.getElementById('amount');
+            let current = parseFloat(amountInput.value) || 0;
+            amountInput.value = current + val;
+            updateAmountDisplay();
+        }
+
+        function resetAmount() {
+            const amountInput = document.getElementById('amount');
+            amountInput.value = 1000;
+            updateAmountDisplay();
+        }
+
+        // 기간 단위 변경 (개월/년)
+        function setPeriodUnit(unit) {
+            if (currentPeriodUnit === unit) return;
+
+            const periodInput = document.getElementById('period');
+            const unitMonthBtn = document.getElementById('unitMonth');
+            const unitYearBtn = document.getElementById('unitYear');
+            const unitText = document.getElementById('periodUnitText');
+
+            let currentVal = parseFloat(periodInput.value) || 0;
+
+            if (unit === 'year') {
+                currentPeriodUnit = 'year';
+                unitYearBtn.className = "px-2.5 py-1 bg-mgBlue text-white font-medium rounded-r-md border border-mgBlue";
+                unitMonthBtn.className = "px-2.5 py-1 bg-white text-slate-600 font-medium rounded-l-md border border-slate-300 hover:bg-slate-50";
+                unitText.textContent = "년";
+                periodInput.value = Math.max(1, Math.round(currentVal / 12));
+                periodInput.max = 30;
+            } else {
+                currentPeriodUnit = 'month';
+                unitMonthBtn.className = "px-2.5 py-1 bg-mgBlue text-white font-medium rounded-l-md border border-mgBlue";
+                unitYearBtn.className = "px-2.5 py-1 bg-white text-slate-600 font-medium rounded-r-md border border-slate-300 hover:bg-slate-50";
+                unitText.textContent = "개월";
+                periodInput.value = currentVal * 12;
+                periodInput.max = 360;
+            }
+        }
+
+        // 라디오 버튼 선택 시 테마 하이라이트
+        function highlightType() {
+            const types = document.getElementsByName('repayType');
+            types.forEach((r, idx) => {
+                const label = document.getElementById(`typeLabel${idx+1}`);
+                if (r.checked) {
+                    label.classList.add('border-mgBlue', 'bg-mgBlue-light/30');
+                    label.classList.remove('border-slate-200');
+                } else {
+                    label.classList.remove('border-mgBlue', 'bg-mgBlue-light/30');
+                    label.classList.add('border-slate-200');
+                }
+            });
+        }
+
+        // 메인 계산 로직
+        function calculateLoan() {
+            // 입력값 파싱
+            const amountManwon = parseFloat(document.getElementById('amount').value) || 0;
+            const principal = amountManwon * 10000; // 원 단위 변환
+            
+            let periodInputVal = parseFloat(document.getElementById('period').value) || 0;
+            const totalMonths = currentPeriodUnit === 'year' ? periodInputVal * 12 : periodInputVal;
+
+            const annualRate = parseFloat(document.getElementById('rate').value) || 0;
+            const monthlyRate = annualRate / 100 / 12;
+
+            // 상환 방식
+            const repayType = document.querySelector('input[name="repayType"]:checked').value;
+
+            // 예외 처리
+            if (principal <= 0 || totalMonths <= 0 || annualRate <= 0) {
+                alert("올바른 대출 금액, 기간, 이자율을 입력해주세요.");
+                return;
+            }
+
+            let schedule = [];
+            let totalInterest = 0;
+            let currentBalance = principal;
+
+            // 1. 원리금균등분할상환 (Equal Principal & Interest)
+            if (repayType === 'equalPrincipalInterest') {
+                document.getElementById('scheduleBadge').textContent = "원리금균등분할상환";
+                // 월 납입금 = P * r * (1+r)^n / ((1+r)^n - 1)
+                const monthlyPayment = Math.round(
+                    (principal * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) /
+                    (Math.pow(1 + monthlyRate, totalMonths) - 1)
+                );
+
+                for (let m = 1; m <= totalMonths; m++) {
+                    let interest = Math.round(currentBalance * monthlyRate);
+                    let principalPaid = monthlyPayment - interest;
+
+                    // 마지막 회차 보정
+                    if (m === totalMonths) {
+                        principalPaid = currentBalance;
+                        interest = Math.round(currentBalance * monthlyRate);
+                    }
+
+                    let payThisMonth = principalPaid + interest;
+                    currentBalance -= principalPaid;
+                    if (currentBalance < 0) currentBalance = 0;
+
+                    totalInterest += interest;
+
+                    schedule.push({
+                        month: m,
+                        principalPaid: principalPaid,
+                        interest: interest,
+                        monthlyPayment: payThisMonth,
+                        balance: currentBalance
+                    });
+                }
+            } 
+            // 2. 원금균등분할상환 (Equal Principal)
+            else if (repayType === 'equalPrincipal') {
+                document.getElementById('scheduleBadge').textContent = "원금균등분할상환";
+                const monthlyPrincipalPaid = Math.floor(principal / totalMonths);
+
+                for (let m = 1; m <= totalMonths; m++) {
+                    let principalPaid = monthlyPrincipalPaid;
+                    let interest = Math.round(currentBalance * monthlyRate);
+
+                    // 마지막 회차 보정
+                    if (m === totalMonths) {
+                        principalPaid = currentBalance;
+                    }
+
+                    let payThisMonth = principalPaid + interest;
+                    currentBalance -= principalPaid;
+                    if (currentBalance < 0) currentBalance = 0;
+
+                    totalInterest += interest;
+
+                    schedule.push({
+                        month: m,
+                        principalPaid: principalPaid,
+                        interest: interest,
+                        monthlyPayment: payThisMonth,
+                        balance: currentBalance
+                    });
+                }
+            } 
+            // 3. 만기일시상환 (Bullet Repayment)
+            else if (repayType === 'bullet') {
+                document.getElementById('scheduleBadge').textContent = "만기일시상환";
+                const monthlyInterest = Math.round(principal * monthlyRate);
+
+                for (let m = 1; m <= totalMonths; m++) {
+                    let principalPaid = (m === totalMonths) ? principal : 0;
+                    let interest = monthlyInterest;
+                    let payThisMonth = principalPaid + interest;
+                    
+                    if (m === totalMonths) {
+                        currentBalance = 0;
+                    }
+
+                    totalInterest += interest;
+
+                    schedule.push({
+                        month: m,
+                        principalPaid: principalPaid,
+                        interest: interest,
+                        monthlyPayment: payThisMonth,
+                        balance: currentBalance
+                    });
+                }
+            }
+
+            // 결과 업데이트
+            updateSummaryUI(schedule[0].monthlyPayment, totalInterest, principal + totalInterest, repayType);
+            renderTable(schedule);
+        }
+
+        // 요약 카드 UI 업데이트
+        function updateSummaryUI(firstMonthPayment, totalInterest, totalRepay, repayType) {
+            document.getElementById('resFirstMonth').textContent = firstMonthPayment.toLocaleString('ko-KR');
+            document.getElementById('resTotalInterest').textContent = totalInterest.toLocaleString('ko-KR');
+            document.getElementById('resTotalRepay').textContent = totalRepay.toLocaleString('ko-KR');
+
+            const subText = document.getElementById('resFirstMonthSub');
+            if (repayType === 'equalPrincipalInterest') {
+                subText.textContent = "매월 납입금 동일";
+            } else if (repayType === 'equalPrincipal') {
+                subText.textContent = "매월 납입금 감소";
+            } else {
+                subText.textContent = "마지막 달 원금 일시상환";
+            }
+        }
+
+        // 회차별 스케줄 테이블 출력
+        function renderTable(schedule) {
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+
+            schedule.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-3 text-center font-medium text-slate-500">${row.month}회</td>
+                    <td class="py-3 px-4">${row.principalPaid.toLocaleString('ko-KR')} 원</td>
+                    <td class="py-3 px-4 text-amber-600">${row.interest.toLocaleString('ko-KR')} 원</td>
+                    <td class="py-3 px-4 font-bold text-mgBlue bg-blue-50/30">${row.monthlyPayment.toLocaleString('ko-KR')} 원</td>
+                    <td class="py-3 px-4 text-slate-500">${row.balance.toLocaleString('ko-KR')} 원</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
